@@ -8,7 +8,7 @@ const APP_KEY = "516788";
 const APP_SECRET = "WixDkQ3wFt24CJrIFKLXUYDh4vb7d20X";
 const REDIRECT_URI = "https://alibot-auth.onrender.com/callback";
 
-// פונקציית חתימה לפי AliExpress
+// יצירת חתימה לפי הדרישות של AliExpress
 function generateSignature(params, appSecret) {
   const sortedKeys = Object.keys(params).sort();
   let baseString = appSecret;
@@ -26,17 +26,17 @@ function generateSignature(params, appSecret) {
   return hash.digest("hex").toUpperCase();
 }
 
-// פונקציית תאריך בפורמט AliExpress
+// תאריך בפורמט AliExpress + לפי זמן סין (UTC+8)
 function formatAliExpressTimestamp() {
-  const date = new Date();
+  const date = new Date(Date.now() + 8 * 60 * 60 * 1000); // היסט מ־UTC ל־UTC+8
   const pad = (n) => n.toString().padStart(2, "0");
 
   return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-      date.getDate()
+    `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(
+      date.getUTCDate()
     )} ` +
-    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-      date.getSeconds()
+    `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(
+      date.getUTCSeconds()
     )}`
   );
 }
