@@ -8,6 +8,7 @@ const APP_KEY = "516788";
 const APP_SECRET = "WixDkQ3wFt24CJrIFKLXUYDh4vb7d20X";
 const REDIRECT_URI = "https://alibot-auth.onrender.com/callback";
 
+// פונקציית חתימה לפי AliExpress
 function generateSignature(params, appSecret) {
   const sortedKeys = Object.keys(params).sort();
   let baseString = appSecret;
@@ -18,12 +19,26 @@ function generateSignature(params, appSecret) {
 
   baseString += appSecret;
 
-  // 💬 לצורך בדיקה:
   console.log("🔐 Signing base string:", baseString);
 
   const hash = crypto.createHash("sha256");
   hash.update(baseString);
   return hash.digest("hex").toUpperCase();
+}
+
+// פונקציית תאריך בפורמט AliExpress
+function formatAliExpressTimestamp() {
+  const date = new Date();
+  const pad = (n) => n.toString().padStart(2, "0");
+
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+      date.getSeconds()
+    )}`
+  );
 }
 
 app.get("/", (req, res) => {
@@ -37,7 +52,7 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("❌ לא התקבל קוד מההרשאה");
   }
 
-  const timestamp = Date.now().toString();
+  const timestamp = formatAliExpressTimestamp();
   const uuid = crypto.randomUUID();
 
   const params = {
