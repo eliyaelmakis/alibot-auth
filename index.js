@@ -4,13 +4,11 @@ const crypto = require("crypto");
 
 const app = express();
 
-// פרטי האפליקציה שלך
 const APP_KEY = "516788";
 const APP_SECRET = "WixDkQ3wFt24CJrIFKLXUYDh4vb7d20X";
 const REDIRECT_URI = "https://alibot-auth.onrender.com/callback";
 
 function generateSignature(params, appSecret) {
-  // מיון לפי מפתח בסדר עולה
   const sortedKeys = Object.keys(params).sort();
   let baseString = appSecret;
 
@@ -20,12 +18,12 @@ function generateSignature(params, appSecret) {
 
   baseString += appSecret;
 
-  // SHA256 hash → אותיות גדולות
-  return crypto
-    .createHash("sha256")
-    .update(baseString)
-    .digest("hex")
-    .toUpperCase();
+  // 💬 לצורך בדיקה:
+  console.log("🔐 Signing base string:", baseString);
+
+  const hash = crypto.createHash("sha256");
+  hash.update(baseString);
+  return hash.digest("hex").toUpperCase();
 }
 
 app.get("/", (req, res) => {
@@ -40,9 +38,8 @@ app.get("/callback", async (req, res) => {
   }
 
   const timestamp = Date.now().toString();
-  const uuid = crypto.randomUUID(); // או סתם מזהה רנדומלי
+  const uuid = crypto.randomUUID();
 
-  // הפרמטרים הדרושים לחתימה
   const params = {
     app_key: APP_KEY,
     code: code,
@@ -51,13 +48,11 @@ app.get("/callback", async (req, res) => {
     uuid: uuid,
   };
 
-  // יצירת חתימה
   const sign = generateSignature(params, APP_SECRET);
 
-  // הוספת החתימה לפרמטרים
   const requestBody = {
     ...params,
-    sign,
+    sign: sign,
   };
 
   try {
