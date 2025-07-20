@@ -8,16 +8,14 @@ const APP_KEY = "516788";
 const APP_SECRET = "WixDkQ3wFt24CJrIFKLXUYDh4vb7d20X";
 const REDIRECT_URI = "https://alibot-auth.onrender.com/callback";
 
-// חתימה מחמירה – רק שדות קיימים, ללא null
+// פונקציה לחישוב חתימה
 function generateSignature(params, appSecret) {
-  const cleanParams = Object.entries(params)
-    .filter(
-      ([key, value]) => value !== undefined && value !== null && value !== ""
-    )
-    .sort(([a], [b]) => a.localeCompare(b)); // מיון לפי מפתחות
+  const sortedParams = Object.entries(params)
+    .filter(([_, v]) => v !== undefined && v !== null && v !== "")
+    .sort(([a], [b]) => a.localeCompare(b));
 
   let baseString = appSecret;
-  for (const [key, value] of cleanParams) {
+  for (const [key, value] of sortedParams) {
     baseString += key + value;
   }
   baseString += appSecret;
@@ -31,8 +29,8 @@ function generateSignature(params, appSecret) {
     .toUpperCase();
 }
 
-// טיימסטמפ במילישניות
-function formatAliExpressTimestamp() {
+// טיימסטמפ בפורמט AliExpress (מילישניות)
+function getAliExpressTimestamp() {
   return Date.now().toString();
 }
 
@@ -47,14 +45,12 @@ app.get("/callback", async (req, res) => {
     return res.status(400).send("❌ לא התקבל קוד מההרשאה");
   }
 
-  const timestamp = formatAliExpressTimestamp();
-  const uuid = crypto.randomUUID();
+  const timestamp = getAliExpressTimestamp();
 
   const params = {
     app_key: APP_KEY,
-    code,
-    uuid,
-    timestamp,
+    code: code,
+    timestamp: timestamp,
     sign_method: "sha256",
   };
 
@@ -84,19 +80,15 @@ app.get("/callback", async (req, res) => {
       )}</pre>`
     );
   } catch (error) {
-    const errData = error.response?.data || error.message;
-    console.error("❌ Token request failed:", errData);
+    const err = error.response?.data || error.message;
+    console.error("❌ Token request failed:", err);
     res
       .status(500)
       .send(
-        `<pre>❌ Token request failed:\n${JSON.stringify(
-          errData,
-          null,
-          2
-        )}</pre>`
+        `<pre>❌ Token request failed:\n${JSON.stringify(err, null, 2)}</pre>`
       );
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🔉 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🟢 Server running on port ${PORT}`));
