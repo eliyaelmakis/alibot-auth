@@ -26,19 +26,9 @@ function generateSignature(params, appSecret) {
   return hash.digest("hex").toUpperCase();
 }
 
-// תאריך בפורמט AliExpress + לפי זמן סין (UTC+8)
+// ✅ טיימסטמפ בפורמט מספר מילישניות – כמו ש-AliExpress דורשים
 function formatAliExpressTimestamp() {
-  const date = new Date(Date.now() + 8 * 60 * 60 * 1000); // היסט מ־UTC ל־UTC+8
-  const pad = (n) => n.toString().padStart(2, "0");
-
-  return (
-    `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(
-      date.getUTCDate()
-    )} ` +
-    `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(
-      date.getUTCSeconds()
-    )}`
-  );
+  return Date.now().toString();
 }
 
 app.get("/", (req, res) => {
