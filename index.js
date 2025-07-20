@@ -8,25 +8,30 @@ const APP_KEY = "516788";
 const APP_SECRET = "WixDkQ3wFt24CJrIFKLXUYDh4vb7d20X";
 const REDIRECT_URI = "https://alibot-auth.onrender.com/callback";
 
-// יצירת חתימה לפי הדרישות של AliExpress
+// חתימה מחמירה – רק שדות קיימים, ללא null
 function generateSignature(params, appSecret) {
-  const sortedKeys = Object.keys(params).sort();
+  const cleanParams = Object.entries(params)
+    .filter(
+      ([key, value]) => value !== undefined && value !== null && value !== ""
+    )
+    .sort(([a], [b]) => a.localeCompare(b)); // מיון לפי מפתחות
+
   let baseString = appSecret;
-
-  for (const key of sortedKeys) {
-    baseString += key + params[key];
+  for (const [key, value] of cleanParams) {
+    baseString += key + value;
   }
-
   baseString += appSecret;
 
   console.log("🔐 Signing base string:", baseString);
 
-  const hash = crypto.createHash("sha256");
-  hash.update(baseString);
-  return hash.digest("hex").toUpperCase();
+  return crypto
+    .createHash("sha256")
+    .update(baseString)
+    .digest("hex")
+    .toUpperCase();
 }
 
-// ✅ טיימסטמפ בפורמט מספר מילישניות – כמו ש-AliExpress דורשים
+// טיימסטמפ במילישניות
 function formatAliExpressTimestamp() {
   return Date.now().toString();
 }
@@ -47,17 +52,17 @@ app.get("/callback", async (req, res) => {
 
   const params = {
     app_key: APP_KEY,
-    code: code,
+    code,
+    uuid,
+    timestamp,
     sign_method: "sha256",
-    timestamp: timestamp,
-    uuid: uuid,
   };
 
   const sign = generateSignature(params, APP_SECRET);
 
   const requestBody = {
     ...params,
-    sign: sign,
+    sign,
   };
 
   try {
